@@ -24,6 +24,7 @@ def spoofing(victim_ip, output = False):
     sleep = 2
     packets_count = 0
     gateway = scapy.conf.route.route("0.0.0.0")[2]
+    enable_ip_forwarding()
     
     try:
         while True:
