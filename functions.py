@@ -1,24 +1,18 @@
-import os
 import scapy.all as scapy
 
 def enable_ip_forwarding():
     """
-    Enables IP forwarding for all operating systems
+    Enables IP forwarding for linux
     """
 
-    if "nt" in os.name:
-        from services import WService
-        service = WService("RemoteAccess")
-        service.start()
-        pass
-    else:
-        file_path = "/proc/sys/net/ipv4/ip_forward"
-        with open(file_path) as f:
-            if f.read() == 1:
-                return
+    file_path = "/proc/sys/net/ipv4/ip_forward"
+    with open(file_path) as f:
+        if f.read() == 1:
+            return
 
-        with open(file_path, "w") as f:
-            print(1, file=f)
+    with open(file_path, "w") as f:
+        print(1, file=f)
+        
 
 def get_mac(ip):
     """

