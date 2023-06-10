@@ -86,7 +86,7 @@ def restore_arp_table(dest_ip, source_ip, output):
     if output:
         print(f"\n[+] Sent to {dest_ip}: {source_ip} is at {source_mac}", end="")
     
-def process_packet(packet, domain, host, output):
+def process_packet(domain, host, output, packet):
     """
     Processes the packet received to start modifying it
 

