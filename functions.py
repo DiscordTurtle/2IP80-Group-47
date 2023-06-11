@@ -107,12 +107,9 @@ def process_packet(domain, host, output, packet):
 
         try:
             # Step 3
-            sPacket = modify_packet(sPacket, domain, host)
+            sPacket = modify_packet(sPacket, domain, host, output)
         except IndexError:
             pass
-
-        if output:
-            print("\n [+] Poisoned: ", sPacket.summary())
 
         # Step 4
         packet.set_payload(bytes(sPacket))
@@ -120,7 +117,7 @@ def process_packet(domain, host, output, packet):
     # Step 5
     packet.accept()
 
-def modify_packet(packet, domain, host):
+def modify_packet(packet, domain, host, output):
     """
     Modifies the packet received
     It will change the DNSRR based on our poisoned mapping
@@ -131,6 +128,8 @@ def modify_packet(packet, domain, host):
     Note: When we modify the answer, checksums and length will be changed.
     So we will delete it and scapy takes care of appending new ones.
     """
+
+    domain = bytes(domain, "utf-8")
 
     # Step 1
     qname = packet[scapy.DNSQR].qname
@@ -148,6 +147,9 @@ def modify_packet(packet, domain, host):
     del packet[scapy.IP].chksum
     del packet[scapy.UDP].len
     del packet[scapy.UDP].chksum
+
+    if output:
+        print("\n [+] Poisoned: ", packet.summary())
 
     return packet
     
