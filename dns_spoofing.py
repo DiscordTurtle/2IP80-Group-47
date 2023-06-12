@@ -6,13 +6,14 @@ from netfilterqueue import NetfilterQueue
 
 def dns_spoofing(domain, host, output = False):
     """
-    Performs the DNS spoofing attack
+    Performs the DNS spoofing attack.
+    ARP spoofing should be done on another terminal during this attack.
     
     Step 1: Insert FORWARD rule in iptables
     Step 2: Start Netfilter queue
-    Step 3: Bind the queue to our "process" callback
+    Step 3: Bind the queue to our "process_packet" callback
     Step 4: Run the queue
-    Step 5: Removing FORWARD rule from iptables
+    Step 5: Removing FORWARD rule from iptables on termination
     """
 
     QUEUE_NUM = 0

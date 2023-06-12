@@ -17,6 +17,7 @@ def enable_ip_forwarding():
 def get_mac(ip):
     """
     Returns the MAC address of the given ip
+
     Step 1: Creating an ARP packet object to the given ip
     Step 2: Creating an Ether packet object
     Note: dst is the broadcast mac address (ff:ff:ff:ff:ff:ff)
@@ -50,12 +51,13 @@ def modify_arp_table(victim_ip, gateway, output):
     """
     Spoofs the ARP table of the victim
     As the result, target MAC address will be changed to our MAC address
+
     Step 1: Get the MAC address of the victim
     Step 2: Creating an ARP packet from target to victim
-    Note: op=2 means that the ARP packet is a response
+    Note: op=2 means that the ARP packet is a response (is-at)
     Note: There is no need to specify 'hwsrc', since by default, it is the MAC
     address of the sender (us as the attacker).
-    Step 3: Send the packet created without output
+    Step 3: Send the packet created without output (verbose)
     """
     
     # Step 1
@@ -74,7 +76,7 @@ def modify_arp_table(victim_ip, gateway, output):
 def restore_arp_table(dest_ip, source_ip, output):
     """
     Restores ARP tables to their correct state
-    Note: The correction packet will be sent 5 times to ensure host has received 
+    Note: The correction packet will be sent 5 times to ensure the host has received 
     the correction
     """
 
@@ -91,9 +93,9 @@ def process_packet(domain, host, output, packet):
     Processes the packet received to start modifying it
 
     Step 1: Convert the Netfilter queue packet to Scapy packet (sPacket)
-    Step 2: Check if the packet is a DNS response that we want to poison
+    Step 2: Check if the packet is a DNS response (answer) that we want to poison
     Step 3: Modify the scapy packet
-    Step 4: Convert back to Netfilter queue packet
+    Step 4: Convert scapy packet back to Netfilter queue packet
     Step 5: Accept the packet
     """
 
@@ -123,13 +125,14 @@ def process_packet(domain, host, output, packet):
 def modify_packet(packet, domain, host):
     """
     Modifies the packet received
-    It will change the DNSRR based on our poisoned mapping
+    It will change the DNSRR if the `qname` is what we want to poison
 
     Step 1: Get the domain name (Question name)
-    Step 2: If the domain is not in poisoned dictionary, ignore it
+    Step 2: If the domain is not what we want to poision, ignore it
     Step 3: Creating new answer
     Note: When we modify the answer, checksums and length will be changed.
     So we will delete it and scapy takes care of appending new ones.
+    Step 4: Return the modified packet
     """
 
     # Step 1
@@ -149,5 +152,6 @@ def modify_packet(packet, domain, host):
     del packet[scapy.UDP].len
     del packet[scapy.UDP].chksum
 
+    # Step 4
     return packet
     
